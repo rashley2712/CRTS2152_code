@@ -177,6 +177,7 @@ if __name__ == "__main__":
 	matplotlib.pyplot.gca().set_ylim(bottom = 0)
 	matplotlib.pyplot.gca().set_xlim(startPhase, endPhase)
 	matplotlib.pyplot.plot([1, 1], matplotlib.pyplot.gca().get_ylim(), color='gray', ls='--')
+	matplotlib.pyplot.plot([1.02922964418, 1.02922964418], matplotlib.pyplot.gca().get_ylim(), color='gray', ls=':')
 	for i, n in enumerate(nights):
 		matplotlib.pyplot.plot([0, 2], [offset*i, offset*i], ls=':', color='k')
 	filterList = ['u', 'g', 'r', 'i', 'z']
