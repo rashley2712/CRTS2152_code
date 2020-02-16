@@ -16,11 +16,14 @@ if __name__ == "__main__":
 	parser.add_argument('-p', action="store_true", help="block the plots")
 	arg = parser.parse_args()
 
+	percentileUpper = 98.5
+	percentileLower = 2
+	colourMap = 'jet'
 	Msol = 2E30  # kg
 	Rsol = 696340000 # m
 	G = 6.67408E-11 # m^3/kg/s
 
-	M1 = 0.7
+	M1 = 0.6
 	M2 = 0.30
 	q = M2/M1
 	Porb = 0.1629749071 * 86400
@@ -45,7 +48,7 @@ if __name__ == "__main__":
 	plotHeight = plotWidth*1.62
 
 	dopplerPlot = matplotlib.pyplot.figure(figsize=(plotWidth, plotHeight))
-	gs = gridspec.GridSpec(3, 1, height_ratios=[2, 0.88, 0.88])
+	gs = gridspec.GridSpec(3, 1, height_ratios=[2, 0.65, 0.65])
 	f = matplotlib.pyplot.subplot(gs[0])
 	hdulist = fits.open(arg.map)
 	print(hdulist.info())
@@ -61,28 +64,24 @@ if __name__ == "__main__":
 	hdulist.close()
 	vmin, vmax = numpy.median(data) - data.std(), numpy.median(data) + 4 * data.std()
 
-	contrastData = generallib.percentiles(data, 5, 98)
+	contrastData = generallib.percentiles(data, percentileLower, percentileUpper)
 			
-	matplotlib.pyplot.imshow(contrastData, origin='lower', cmap='viridis', aspect='equal', extent=(-nx*vxy,nx*vxy, -ny*vxy,ny*vxy))
+	matplotlib.pyplot.imshow(contrastData, origin='lower', cmap=colourMap, aspect='equal', extent=(-nx*vxy,nx*vxy, -ny*vxy,ny*vxy))
 	(vx, vy) = trm.roche.vlobe2(q, n=200)
 	matplotlib.pyplot.plot(vx*scale, vy*scale, color='g')
 	(vx, vy) = trm.roche.vlobe1(q, n=200)
 	matplotlib.pyplot.plot(vx*scale, vy*scale, ls="--", color='g')
-	(vx, vy) = trm.roche.vstream(q, step=0.01, vtype=1, n=80)
+	(vx, vy) = trm.roche.vstream(q, step=0.01, vtype=1, n=70)
 	matplotlib.pyplot.plot(vx*scale, vy*scale, color='g')
-	matplotlib.pyplot.xlabel("$\mathrm{v}_\mathrm{x} (\mathrm{km}\,\mathrm{s}^{-1})$")
-	matplotlib.pyplot.ylabel("$\mathrm{v}_\mathrm{y} (\mathrm{km}\,\mathrm{s}^{-1})$")
+	matplotlib.pyplot.xlabel("$\mathrm{V}_\mathrm{x} (\mathrm{km}\,\mathrm{s}^{-1})$")
+	matplotlib.pyplot.ylabel("$\mathrm{V}_\mathrm{y} (\mathrm{km}\,\mathrm{s}^{-1})$")
 	axis = matplotlib.pyplot.gca()
 	print("Scale:", axis.get_xscale())
 	axis.set_autoscale_on(False)
 	axis.xaxis.set_label_position('top')
 	axis.xaxis.tick_top()
 	matplotlib.pyplot.draw()
-	if arg.save:
-		filename = generallib.addSuffixToFilename(arg.save, "map")
-		print("Writing file: %s"%filename)
-		matplotlib.pyplot.savefig(filename)			
-
+	
 	# Now draw the source data
 	matplotlib.pyplot.subplot(gs[1])
 	hdulist = fits.open(arg.input)
@@ -128,8 +127,8 @@ if __name__ == "__main__":
 	wavelengths = hdulist[3].data
 	(startWavelength, endWavelength) = (wavelengths[0][0], wavelengths[0][-1])
 	#sourcePlot = matplotlib.pyplot.figure(figsize=(plotWidth, plotHeight))
-	contrastFlux = generallib.percentiles(binnedFlux, 5, 98)
-	matplotlib.pyplot.imshow(contrastFlux, origin='lower', cmap='viridis', aspect=20,  extent=[startWavelength, endWavelength, 0, 1])
+	contrastFlux = generallib.percentiles(binnedFlux, percentileLower, percentileUpper)
+	matplotlib.pyplot.imshow(contrastFlux, origin='lower', cmap=colourMap, aspect=20,  extent=[startWavelength, endWavelength, 0, 1])
 	#matplotlib.pyplot.axis('auto')
 	matplotlib.pyplot.ylabel("Orbital phase")
 	matplotlib.pyplot.xticks([], [])
@@ -179,8 +178,8 @@ if __name__ == "__main__":
 	
 	wavelengths = hdulist[3].data
 	(startWavelength, endWavelength) = (wavelengths[0][0], wavelengths[0][-1])
-	contrastFlux = generallib.percentiles(binnedFlux, 5, 98)
-	matplotlib.pyplot.imshow(contrastFlux, origin='lower', cmap='viridis', aspect=20, extent=[startWavelength, endWavelength, 0, 1])
+	contrastFlux = generallib.percentiles(binnedFlux, percentileLower, percentileUpper)
+	matplotlib.pyplot.imshow(contrastFlux, origin='lower', cmap=colourMap, aspect=20, extent=[startWavelength, endWavelength, 0, 1])
 	#matplotlib.pyplot.axis('auto')
 	#dopplerPlot.tight_layout()
 	matplotlib.pyplot.subplots_adjust(wspace=None, hspace=0.1)	
@@ -189,6 +188,11 @@ if __name__ == "__main__":
 	matplotlib.pyplot.ylabel("Orbital phase")
 	matplotlib.pyplot.xlabel("Wavelength (\AA)")
 		
+	if arg.save:
+		#filename = generallib.addSuffixToFilename(arg.save, "map")
+		filename = arg.save		
+		print("Writing file: %s"%filename)
+		matplotlib.pyplot.savefig(filename)			
 	
 	matplotlib.pyplot.show(block=arg.p)
 

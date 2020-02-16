@@ -73,4 +73,4 @@ if __name__ == "__main__":
 			else: filename = arg.save
 			print("Writing file: %s"%filename)
 			matplotlib.pyplot.savefig(filename)			
-	matplotlib.pyplot.show(block=False)
+	matplotlib.pyplot.show(block=True)
